@@ -12,8 +12,9 @@ namespace SatisfactoryCompanion.Core
         public bool IsOre { get; set; }
         public List<Recipe>? Recipes { get; set; }
         public List<string>? ExtractorNames { get; set; }
+        public List<Extractor> Extractors => GetExtractors();
 
-        public List<Extractor> GetExtractors()
+        private List<Extractor> GetExtractors()
         {
             var extractors = new List<Extractor>();
             if (ExtractorNames == null) return extractors;

@@ -25,7 +25,7 @@ while (item?.IsOre == false)
         ConsoleWriter.WriteLine($"Item Used:     {{FC={n}}}{input.ItemName, -15}{{/FC}} Qty: {{FC={n}}}{requirement} items/m{{/FC}}");
     }
     float machinesRequired = requirement / recipe.GetItemsPerMinute() * recipe.Output;
-    ConsoleWriter.WriteLine($"Machine Used:  {{FC={h}}}{Math.Ceiling(machinesRequired)}x {recipe.MachineName} {(Math.Ceiling(machinesRequired) != machinesRequired ? $"({machinesRequired:0.##}x)" : "" )}{{/FC}}");
+    ConsoleWriter.WriteLine($"Machine Used:  {{FC={h}}}{Math.Ceiling(machinesRequired)}x {recipe.Machine?.Name} {(Math.Ceiling(machinesRequired) != machinesRequired ? $"({machinesRequired:0.##}x)" : "" )}{{/FC}}");
     ConsoleWriter.WriteLine();
     item = recipe.Inputs[0].GetItem();
     if (item != null && !item.IsOre) multiplier = 1 / (item.Recipes[0].GetItemsPerMinute() / requirement);
