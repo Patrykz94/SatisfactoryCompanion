@@ -12,8 +12,6 @@ namespace SatisfactoryCompanion
         Item? selectedItem = null;
         float quantity = 0f;
 
-        int consoleMinWidth = 120;
-
         ConsoleColor RBC = ConsoleColor.Gray;
         ConsoleColor RFC = ConsoleColor.Black;
         ConsoleColor BC = ConsoleColor.Black;
@@ -27,8 +25,6 @@ namespace SatisfactoryCompanion
             bool confirmed = false;
             string searchName = "";
             int resultSelected = 0;
-
-            int consoleWindowWidth = Console.WindowWidth;
 
             while (!confirmed)
             {
