@@ -12,10 +12,8 @@ namespace SatisfactoryCompanion.Core
         public float Output { get; set; }
         public float Time { get; set; }
         public string? MachineName { get; set; }
-        public Machine? Machine
-        {
-            get { return MachineManager.GetMachine(MachineName); }
-        }
+        public Machine? Machine => MachineManager.GetMachine(MachineName);
+
         public float GetItemsPerMinute(float clockSpeed = 100) => 60 * Output / Time * (clockSpeed/100);
     }
 }

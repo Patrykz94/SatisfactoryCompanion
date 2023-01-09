@@ -10,5 +10,7 @@ namespace SatisfactoryCompanion.Core
     {
         public string? Name { get; set; }
         public float PowerConsumption { get; set; }
+
+        public override string? ToString() => Name ?? base.ToString();
     }
 }

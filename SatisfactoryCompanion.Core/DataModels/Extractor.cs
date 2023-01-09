@@ -9,5 +9,10 @@ namespace SatisfactoryCompanion.Core
     public class Extractor : Machine
     {
         public float ExtractionTime { get; set; }
+
+        public float GetItemsPerMinute()
+        {
+            return 60 / ExtractionTime;
+        }
     }
 }

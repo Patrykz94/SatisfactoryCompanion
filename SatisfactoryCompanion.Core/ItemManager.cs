@@ -21,9 +21,38 @@ namespace SatisfactoryCompanion.Core
             return null;
         }
 
+        public static List<Item> SearchItems(string name)
+        {
+            if (name == string.Empty) return Items;
+
+            string searchName = name.ToLowerInvariant();
+
+            List<Item> startItems = new List<Item>();
+            List<Item> containItems = new List<Item>();
+            foreach (Item item in Items)
+            {
+                if (string.IsNullOrEmpty(item.Name)) continue;
+
+                string itemName = item.Name.ToLowerInvariant();
+
+                if (itemName.StartsWith(searchName))
+                {
+                    startItems.Add(item);
+                }
+                else if (itemName.Contains(searchName))
+                {
+                    containItems.Add(item);
+                }
+            }
+
+            startItems.AddRange(containItems);
+
+            return startItems;
+        }
+
         public static void Initialize(List<Item> items)
         {
-            Items = items;
+            Items = items.OrderBy(x => x.Name).ToList();
         }
     }
 }

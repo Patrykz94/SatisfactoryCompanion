@@ -14,7 +14,12 @@ namespace SatisfactoryCompanion.Core
 
         public static void LoadJsonFile()
         {
-            if (!File.Exists(filePath)) throw new FileNotFoundException("ERROR: data.json file not found!\n\nThis file is required as it contains all required data.");
+            if (!File.Exists(filePath))
+            {
+                string jsonString = "{ \"Machines\": [], \"Extractors\": [], \"Items\": [] }";
+
+                File.WriteAllText(filePath, jsonString);
+            }
 
             JObject jsonObject = JObject.Parse(File.ReadAllText(filePath));
 

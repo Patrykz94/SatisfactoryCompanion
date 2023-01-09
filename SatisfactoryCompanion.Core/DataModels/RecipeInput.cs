@@ -9,7 +9,7 @@ namespace SatisfactoryCompanion.Core
     public class RecipeInput
     {
         public string? ItemName { get; set; }
+        public Item? Item => ItemManager.GetItem(ItemName);
         public float Quantity { get; set; }
-        public Item? GetItem() => ItemManager.GetItem(ItemName);
     }
 }

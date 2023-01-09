@@ -26,5 +26,7 @@ namespace SatisfactoryCompanion.Core
 
             return extractors;
         }
+
+        public override string? ToString() => Name ?? base.ToString();
     }
 }
