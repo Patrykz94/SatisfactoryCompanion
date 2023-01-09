@@ -12,6 +12,8 @@ namespace SatisfactoryCompanion
         Item? selectedItem = null;
         float quantity = 0f;
 
+        int consoleMinWidth = 120;
+
         ConsoleColor RBC = ConsoleColor.Gray;
         ConsoleColor RFC = ConsoleColor.Black;
         ConsoleColor BC = ConsoleColor.Black;
@@ -26,6 +28,8 @@ namespace SatisfactoryCompanion
             string searchName = "";
             int resultSelected = 0;
 
+            int consoleWindowWidth = Console.WindowWidth;
+
             while (!confirmed)
             {
                 Console.Clear();
@@ -33,14 +37,15 @@ namespace SatisfactoryCompanion
                 Console.WriteLine();
                 string topLine = $"Start typing item name to search: ";
                 ConsoleWriter.WriteLine($"{topLine}{{FC=Green}}{searchName}{{/FC}}");
+                Console.WriteLine();
 
                 List<Item> itemsFound = ItemManager.SearchItems(searchName);
                 if (itemsFound.Count > maxResultsToDisplay)
-                    Console.WriteLine($"\nFound {itemsFound.Count} results. Displaying top {maxResultsToDisplay}:");
+                    ConsoleWriter.WriteLine($"Found {{FC={MC}}}{itemsFound.Count}{{/FC}} results. Displaying top {{FC={MC}}}{maxResultsToDisplay}{{/FC}}:");
                 else if (itemsFound.Count > 0)
-                    Console.WriteLine($"\nFound {itemsFound.Count} results:");
+                    ConsoleWriter.WriteLine($"Found {{FC={MC}}}{itemsFound.Count}{{/FC}} results:");
                 else
-                    Console.WriteLine("\nNo results found! Please change your search input.");
+                    Console.WriteLine("No results found! Please change your search input.");
 
                 resultSelected = Math.Max(0, Math.Min(Math.Min(itemsFound.Count - 1, maxResultsToDisplay - 1), resultSelected));
 
@@ -158,27 +163,47 @@ namespace SatisfactoryCompanion
         {
             if (selectedItem == null) return true;
 
-            Console.Clear();
-            ConsoleWriter.WriteLine($"Press {{BC={RBC}}}{{FC={RFC}}} Q {{/FC}}{{/BC}} to change quantity, {{BC={RBC}}}{{FC={RFC}}} S {{/FC}}{{/BC}} to search for a new item or {{BC={RBC}}}{{FC={RFC}}} E {{/FC}}{{/BC}} to exit");
-            Console.WriteLine();
-            Console.WriteLine("Production Chain (Tree View):");
-            Console.WriteLine();
+            int consoleHeight = Console.WindowHeight;
+
+            int consoleStart = 0;
+            int consoleEnd = consoleHeight;
+
+            List<string> lines = new List<string>();
+
+            lines.Add($"Press {{BC={RBC}}}{{FC={RFC}}} Q {{/FC}}{{/BC}} to change quantity, {{BC={RBC}}}{{FC={RFC}}} S {{/FC}}{{/BC}} to search for a new item or {{BC={RBC}}}{{FC={RFC}}} E {{/FC}}{{/BC}} to exit.");
+            lines.Add($"Press the {{BC={RBC}}}{{FC={RFC}}} Up/Down Arrow {{/FC}}{{/BC}} keys to navigate through this page.");
+            lines.Add("");
+            lines.Add("Production Chain (Tree View):");
+            lines.Add("");
 
             ProductionChain chain = new ProductionChain(selectedItem, quantity);
 
-            PrintElementTree(chain.FirstElement);
+            lines.AddRange(PrintElementTree(chain.FirstElement));
 
-            Console.WriteLine();
-            ConsoleWriter.WriteLine($"Total {{FC={IC}}}Items{{/FC}} and {{FC={MC}}}Machines{{/FC}} required:");
-            Console.WriteLine();
-            PrintTotals(chain.GetTotalItems());
+            lines.Add("");
+            lines.Add($"Total {{FC={IC}}}Items{{/FC}} and {{FC={MC}}}Machines{{/FC}} required:");
+            lines.Add("");
+            lines.AddRange(PrintTotals(chain.GetTotalItems()));
 
-            Console.WriteLine();
-            ConsoleWriter.WriteLine($"Use mouse {{BC={RBC}}}{{FC={RFC}}} Scroll Wheel {{/FC}}{{/BC}} to navigate up and down this page");
-            ConsoleWriter.Write($"Press {{BC={RBC}}}{{FC={RFC}}} Q {{/FC}}{{/BC}} to change quantity, {{BC={RBC}}}{{FC={RFC}}} S {{/FC}}{{/BC}} to search for a new item or {{BC={RBC}}}{{FC={RFC}}} E {{/FC}}{{/BC}} to exit");
+            lines.Add("");
+            lines.Add($"Press {{BC={RBC}}}{{FC={RFC}}} Q {{/FC}}{{/BC}} to change quantity, {{BC={RBC}}}{{FC={RFC}}} S {{/FC}}{{/BC}} to search for a new item or {{BC={RBC}}}{{FC={RFC}}} E {{/FC}}{{/BC}} to exit");
             
             while (true)
             {
+                Console.Clear();
+
+                for (int i = consoleStart; i < Math.Min(lines.Count, consoleEnd); i++)
+                {
+                    if (i < Math.Min(lines.Count - 1, consoleEnd - 1))
+                    {
+                        ConsoleWriter.WriteLine(lines[i]);
+                    }
+                    else
+                    {
+                        ConsoleWriter.Write(lines[i]);
+                    }
+                }
+
                 ConsoleKeyInfo keyPressed = Console.ReadKey(true);
                 if (keyPressed.Key == ConsoleKey.Q)
                 {
@@ -192,13 +217,31 @@ namespace SatisfactoryCompanion
                 {
                     Environment.Exit(0);
                 }
+                else if (keyPressed.Key == ConsoleKey.UpArrow)
+                {
+                    if (consoleStart > 0)
+                    {
+                        consoleStart--;
+                        consoleEnd--;
+                    }
+                }
+                else if (keyPressed.Key == ConsoleKey.DownArrow)
+                {
+                    if (consoleEnd < lines.Count)
+                    {
+                        consoleStart++;
+                        consoleEnd++;
+                    }
+                }
             }
         }
 
 
-        private void PrintElementTree(ChainElement element, bool isRootItem = true, string indent = "", bool isLastSibling = true)
+        private List<string> PrintElementTree(ChainElement element, bool isRootItem = true, string indent = "", bool isLastSibling = true)
         {
             List<ChainElement> children = element.Elements;
+
+            List<string> lines = new List<string>();
 
             if (isRootItem)
             {
@@ -208,8 +251,8 @@ namespace SatisfactoryCompanion
                 int strLen = Math.Max(itemName.Length, machineName.Length);
                 itemName = itemName.PadRight(strLen);
                 machineName = machineName.PadRight(strLen);
-                ConsoleWriter.WriteLine($"{{BC={BC}}}{{FC={FC}}}Item:    {{FC={IC}}}{itemName}{{/FC}} Qty: {{FC={IC}}}{element.QuantityPerMinute:0.##}{{/FC}}{{/FC}}{{/BC}}");
-                ConsoleWriter.WriteLine($"{{BC={BC}}}{{FC={FC}}}Machine: {{FC={MC}}}{machineName}{{/FC}} Qty: {{FC={MC}}}{element.MachineCount:0.##}{{/FC}}{{/FC}}{{/BC}}");
+                lines.Add($"{{BC={BC}}}{{FC={FC}}}Item:    {{FC={IC}}}{itemName}{{/FC}} Qty: {{FC={IC}}}{element.QuantityPerMinute:0.##}{{/FC}}{{/FC}}{{/BC}}");
+                lines.Add($"{{BC={BC}}}{{FC={FC}}}Machine: {{FC={MC}}}{machineName}{{/FC}} Qty: {{FC={MC}}}{element.MachineCount:0.##}{{/FC}}{{/FC}}{{/BC}}");
             }
             else
             {
@@ -222,23 +265,29 @@ namespace SatisfactoryCompanion
 
                 string futureIndent = indent + (isLastSibling ? "        " : "┃       ");
                 string tempIndent = indent + "┃       ";
-                ConsoleWriter.WriteLine($"{{FC={FC}}}{tempIndent}{{/FC}}");
-                ConsoleWriter.WriteLine($"{{FC={FC}}}{indent}{(isLastSibling ? "┗━━━━━━╸" : "┣━━━━━━╸")}{{BC={BC}}}Item:    {{FC={IC}}}{itemName}{{/FC}} Qty: {{FC={IC}}}{element.QuantityPerMinute:0.##}{{/FC}}{{/BC}}{{/FC}}");
-                ConsoleWriter.WriteLine($"{{FC={FC}}}{futureIndent}{{BC={BC}}}Machine: {{FC={MC}}}{machineName}{{/FC}} Qty: {{FC={MC}}}{element.MachineCount:0.##}{{/FC}}{{/BC}}{{/FC}}");
+                lines.Add($"{{FC={FC}}}{tempIndent}{{/FC}}");
+                lines.Add($"{{FC={FC}}}{indent}{(isLastSibling ? "┗━━━━━━╸" : "┣━━━━━━╸")}{{BC={BC}}}Item:    {{FC={IC}}}{itemName}{{/FC}} Qty: {{FC={IC}}}{element.QuantityPerMinute:0.##}{{/FC}}{{/BC}}{{/FC}}");
+                lines.Add($"{{FC={FC}}}{futureIndent}{{BC={BC}}}Machine: {{FC={MC}}}{machineName}{{/FC}} Qty: {{FC={MC}}}{element.MachineCount:0.##}{{/FC}}{{/BC}}{{/FC}}");
                 if (isLastSibling && children.Count == 0)
                 {
-                    ConsoleWriter.WriteLine($"{{FC={FC}}}{indent}{{/FC}}");
+                    lines.Add($"{{FC={FC}}}{indent}{{/FC}}");
                 }
 
                 indent = futureIndent;
             }
 
             for (int i = 0; i < children.Count; i++)
-                PrintElementTree(children[i], false, indent, i == children.Count - 1);
+            {
+                lines.AddRange(PrintElementTree(children[i], false, indent, i == children.Count - 1));
+            }
+
+            return lines;
         }
 
-        private void PrintTotals(ChainItemsHandler chainItems)
+        private List<string> PrintTotals(ChainItemsHandler chainItems)
         {
+            List<string> lines = new List<string>();
+
             int itemLength, qtyLength, machineLength, machineNum;
             itemLength = qtyLength = machineLength = machineNum = 0;
 
@@ -255,11 +304,13 @@ namespace SatisfactoryCompanion
             {
                 float roundedNumOfMachines = (float)Math.Ceiling(chainItem.TotalMachineCount);
                 string numOfMachinesString = $"{roundedNumOfMachines}".PadRight(machineNum) + (roundedNumOfMachines == chainItem.TotalMachineCount ? "" : $" ({chainItem.TotalMachineCount:0.##})");
-                ConsoleWriter.WriteLine($"{{BC={BC}}}Item: {{FC={IC}}}{chainItem.Item.Name?.PadRight(itemLength)}{{/FC}} " +
+                lines.Add($"{{BC={BC}}}Item: {{FC={IC}}}{chainItem.Item.Name?.PadRight(itemLength)}{{/FC}} " +
                     $"Total Qty: {{FC={IC}}}{chainItem.TotalQuantityPerMinute.ToString().PadRight(qtyLength)}{{/FC}} " +
                     $"Machine Used: {{FC={MC}}}{chainItem.Machine?.Name?.ToString().PadRight(machineLength) ?? "UNKNOWN".PadRight(machineLength)}{{/FC}} " +
                     $"Number of Machines: {{FC={MC}}}{numOfMachinesString}{{/FC}}{{/BC}}");
             }
+
+            return lines;
         }
     }
 }
